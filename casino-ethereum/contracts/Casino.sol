@@ -26,6 +26,7 @@ contract Casino {
     }
 
     //makes sure that the player only plays once per game
+    //the word constant indicates that this is a function that doesnt cost any gas to run because its returning an already existing value from the blockchain( important)
     function checkPlayerExists(address player) public constant returns(bool){
         for(uint256 i = 0; i < players.length; i++){
             if(players[i] == player) return true;
@@ -34,7 +35,7 @@ contract Casino {
     }
 
     // To bet for a number between 1 and 10 both inclusive
-   function bet(uint256 numberSelected) public payable {
+    function bet(uint256 numberSelected) public payable {
       require(!checkPlayerExists(msg.sender));
       require(numberSelected >= 1 && numberSelected <= 10);
       require(msg.value >= minimumBet);
@@ -44,5 +45,13 @@ contract Casino {
       numberOfBets++;
       players.push(msg.sender);
       totalBet += msg.value;
+   }
+
+   //Generates a number between 1 and 10 that will be the winner
+   function generateNumberWinner() public {
+       //takes the current block number and gets the last number + 1 so, for example, if the block number is 128142 the number generated will be 128142 % 10 = 2 and 2 +1 = 3.
+       uint256 numberGenerated = block.number % 10 + 1; //this is not secure
+       //distribute the prizes for the winners
+       distributePrizes(numberGenerated);
    }
 }
