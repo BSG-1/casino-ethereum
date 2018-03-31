@@ -13,7 +13,11 @@ contract Casino {
         uint256 numberSelected;
     }
     
-    //The address of the player and => the user info mapping(address => Player) public playerInfo;
+    //The address of the player and => the user info 
+    mapping(address => Player) public playerInfo;
+
+    function() public payable {}
+
 
     //this is the constructor because it has the same name as that of the contract and we use it to set up the owner of that contract
     function Casino(uint256 _minimumBet) public {
@@ -50,8 +54,29 @@ contract Casino {
    //Generates a number between 1 and 10 that will be the winner
    function generateNumberWinner() public {
        //takes the current block number and gets the last number + 1 so, for example, if the block number is 128142 the number generated will be 128142 % 10 = 2 and 2 +1 = 3.
-       uint256 numberGenerated = block.number % 10 + 1; //this is not secure
+       //this is not secure
+       uint256 numberGenerated = block.number % 10 + 1; 
        //distribute the prizes for the winners
        distributePrizes(numberGenerated);
    }
+
+    // Sends the corresponding ether to each winner depending on the total bets
+    function distributePrizes(uint256 numberWinner) public {
+      address[100] memory winners; // We have to create a temporary in memory array with fixed size
+      uint256 count = 0; // This is the count for the array of winners
+      for(uint256 i = 0; i < players.length; i++){
+        address playerAddress = players[i];
+        if(playerInfo[playerAddress].numberSelected == numberWinner){
+            winners[count] = playerAddress;
+            count++;
+        }
+        delete playerInfo[playerAddress]; // Delete all the players
+      }
+      players.length = 0; // Delete all the players array
+      uint256 winnerEtherAmount = totalBet / winners.length; // How much each winner gets
+      for(uint256 j = 0; j < count; j++){
+        if(winners[j] != address(0)) // Check that the address in this fixed array is not empty
+        winners[j].transfer(winnerEtherAmount);
+      }
+    }
 }
